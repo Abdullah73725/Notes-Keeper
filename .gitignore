@@ -5,26 +5,15 @@ frontend/dist/
 # Backend
 keeper-backend/target/
 
+# IDE
+.idea/
+.vscode/
+.settings/
+
 # Eclipse
 .classpath
 .project
-.settings/
 .factorypath
-
-# VS Code
-.vscode/
-
-# IntelliJ
-.idea/
-*.iml
 
 # Logs
 *.log
-
-# Environment files
-.env
-.env.local
-
-# OS files
-.DS_Store
-Thumbs.db
