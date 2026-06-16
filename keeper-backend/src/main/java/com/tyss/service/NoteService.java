@@ -1,0 +1,81 @@
+package com.tyss.service;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.tyss.entity.Note;
+import com.tyss.entity.User;
+import com.tyss.repository.NoteRepository;
+import com.tyss.repository.UserRepository;
+import com.tyss.security.JwtUtil;
+
+@Service
+public class NoteService {
+	
+	@Autowired
+	private NoteRepository noteRepository;
+	
+	@Autowired
+	private UserRepository userRepository;
+
+	public Note addNote(Note note, String token) {
+		token = token.substring(7);
+		String email  = JwtUtil.extractEmail(token);
+		User user = userRepository.findByEmail(email).orElseThrow();
+		note.setUser(user);
+		note.setCreatedAt(LocalDateTime.now());
+		note.setUpdatedAt(LocalDateTime.now());
+		return noteRepository.save(note);
+	}
+	
+	public List<Note> getAllNotes(String token) {
+		token = token.substring(7).trim();
+		String email = JwtUtil.extractEmail(token);
+		User user = userRepository.findByEmail(email).orElseThrow();
+		return noteRepository.findByUser(user);
+	}
+	
+	public Note updateNote(Long id, Note updatedNote, String token) {
+		token = token.substring(7);
+		String email = JwtUtil.extractEmail(token);
+		User user = userRepository.findByEmail(email).orElseThrow();
+		Note existingNote = noteRepository.findById(id).orElseThrow();
+		
+		if(existingNote.getUser().getEmail().equals(user.getEmail())) {
+			existingNote.setTitle(updatedNote.getTitle());
+			existingNote.setContent(updatedNote.getContent());
+			existingNote.setUpdatedAt(LocalDateTime.now());
+			return noteRepository.save(existingNote);
+		}
+		else throw new RuntimeException("You cannot edit another user's note");
+	}
+	
+	public void deleteNote(Long id,String token) {
+		token = token.substring(7).trim();
+		String email = JwtUtil.extractEmail(token);
+		User user = userRepository.findByEmail(email).orElseThrow();
+		Note note = noteRepository.findById(id).orElseThrow();
+		if(note.getUser().getEmail().equals(user.getEmail())) {
+			noteRepository.delete(note);
+		} else {
+			throw new RuntimeException("You cannot delete another user's note");
+		}
+	}
+	
+	public Note togglePin(Long id, String token) {
+		token = token.substring(7).trim();
+		String email = JwtUtil.extractEmail(token);
+		User user = userRepository.findByEmail(email).orElseThrow();
+		Note note = noteRepository.findById(id).orElseThrow();
+		if(note.getUser().getEmail().equals(user.getEmail())) {
+			note.setPinned(!note.isPinned());
+			return noteRepository.save(note);
+		} else {
+			throw new RuntimeException("You cannot pin another user's note");
+		}
+	}
+}

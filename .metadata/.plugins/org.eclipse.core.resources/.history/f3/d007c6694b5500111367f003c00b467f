@@ -1,0 +1,50 @@
+package com.tyss.service;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.tyss.entity.Note;
+import com.tyss.entity.User;
+import com.tyss.repository.NoteRepository;
+import com.tyss.repository.UserRepository;
+import com.tyss.security.JwtUtil;
+
+@Service
+public class NoteService {
+	
+	@Autowired
+	private NoteRepository noteRepository;
+	
+	@Autowired
+	private UserRepository userRepository;
+
+	public Note addNote(Note note, String token) {
+		token = token.substring(7);
+		String email  = JwtUtil.extractEmail(token);
+		User user = userRepository.findByEmail(email).orElseThrow();
+		note.setUser(user);
+		return noteRepository.save(note);
+	}
+	
+	public List<Note> getAllNotes(String token) {
+		token = token.substring(7).trim();
+		String email = JwtUtil.extractEmail(token);
+		User user = userRepository.findByEmail(email).orElseThrow();
+		return noteRepository.findByUser(user);
+	}
+	
+	public void deleteNote(Long id,String token) {
+		token = token.substring(7).trim();
+		String email = JwtUtil.extractEmail(token);
+		Optional<User> user = userRepository.findByEmail(email);
+		Note note = noteRepository.findById(id).orElseThrow();
+		if(note.getUser().getId().equals(user.getId())) {
+			noteRepository.delete(note);
+		} else {
+			throw new RuntimeException("You cannot delete another user's note");
+		}
+	}
+}

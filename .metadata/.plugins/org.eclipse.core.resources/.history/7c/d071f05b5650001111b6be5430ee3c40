@@ -1,0 +1,26 @@
+package com.tyss.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.tyss.entity.Note;
+import com.tyss.repository.NoteRepository;
+
+public class NoteService {
+	
+	@Autowired
+	private NoteRepository noteRepository;
+
+	public Note addNote(Note note) {
+		return noteRepository.save(note);
+	}
+	
+	public List<Note> getAllNotes() {
+		return noteRepository.findAll();
+	}
+	
+	public void deleteNote(Long id) {
+		noteRepository.deleteById(id);
+	}
+}
